@@ -213,7 +213,14 @@ def prediction():
         data = image_database_retrieval()
         print(flask_login.current_user.id)
         #print(len(base64.b64decode(data[flask_login.current_user.id]['image'].strip())))
-        img_retrived = np.asarray(bytearray(base64.b64decode(data[flask_login.current_user.id]['image'])))
+        image = Image.open(BytesIO(base64.b64decode(data[flask_login.current_user.id]['image'])))
+        img_retrived = np.array(image)
+        '''img_retrived = np.asarray(base64.b64decode(data[flask_login.current_user.id]['image']))
+        print(data[flask_login.current_user.id]['image'])
+        print(img_retrived.shape)'''
+        #img_retrived = np.resize(img_retrived,(244,244))
+        img_retrive = Image.fromarray(img_retrived)
+        img_retrive.save('static\imagedata\sae.png')
         '''img_retrived = np.frombuffer(
             BytesIO(
                 base64.b64decode(data[flask_login.current_user.id]['image'])
@@ -248,7 +255,7 @@ def prediction():
         img_retrived = Image.fromarray(img_retrived)
         img_retrived.save('static\imagedata\save.png')
         print('image uploaded and retrieved')
-        return render_template('prediction.html',flash_message='True')
+        return render_template('prediction.html',flash_message='True',value = result1+' '+result2+' '+value)
         #,imag=img_retrived)
 
     return render_template('prediction.html',flash_message='Flase')
