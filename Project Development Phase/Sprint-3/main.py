@@ -1,19 +1,20 @@
-from flask import Flask, app, request, render_template
-import os
-import flask
-import re
-import flask_login
 import base64
-from PIL import Image
-from io import BytesIO
 import datetime
+import os
+import re
+from io import BytesIO
+
 import cv2
+import flask
+import flask_login
 import numpy as np
-from tensorflow.keras.models import load_model
+
 from cloudant.client import Cloudant
 from cloudant.error import CloudantException
 from cloudant.result import Result, ResultByKey
-
+from flask import Flask, app, render_template, request
+from PIL import Image
+from tensorflow.keras.models import load_model
 
 #os.chdir('Project Development Phase\Sprint-3')
 model1 = load_model('Model/level.h5')
@@ -142,12 +143,14 @@ def index():
     else:
         return flask.redirect(flask.url_for('login'))
 
+from quickstart import send_mail
 @app.route('/register',methods = ['GET','POST'])
 def register():
     data = database_retrieval()
     if(flask.request.method == 'GET'):
         return render_template('register.html')
     email = flask.request.form['email']
+    
     if(email in data):
         return render_template('register.html',flash_message='True')
     else:
@@ -157,6 +160,7 @@ def register():
         user.id = email
         user.name = flask.request.form['name']
         flask_login.login_user(user)
+        send_mail(email,"Thanks for registering","thank you")
         return render_template('dashboard.html',flash_message='True')
 
 
