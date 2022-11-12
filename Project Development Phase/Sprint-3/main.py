@@ -202,6 +202,11 @@ def logout():
     flask_login.logout_user()
     return render_template('logout.html')
 
+@app.route('/forgotpassword')
+def forgotpassword():
+    return render_template('forgetpassword.html')
+
+
 
 @app.route('/prediction',methods = ['GET','POST'])
 @flask_login.login_required
