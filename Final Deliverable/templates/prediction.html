@@ -99,8 +99,12 @@
           // im.width = '200px';
           // im.alt = 'hello world'
           // document.getElementById('about').appendChild(im);
-            document.getElementById('image').src = 'static/imagedata/save.png'
-            document.getElementById('qwerty').p="23"
+            document.getElementById('image').src = 'static/imagedata/save.png';
+            const e = document.getElementById("qwerty");
+            const para = document.createElement("p");
+            const node = document.createTextNode("The estimated cost for the damage is : | {{value}} |");
+            para.appendChild(node);
+            e.appendChild(para);
           }
         }
       </script>
@@ -121,7 +125,6 @@
     width="200px"
     /> -->
     <div id="about">
-      The estimated cost for the damage is : ||
       <div id="qwerty">
         <p></p>
       </div>

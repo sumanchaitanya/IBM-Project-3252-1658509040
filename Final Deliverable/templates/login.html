@@ -1,6 +1,7 @@
 <html>
   <head>
     <title>Login</title>
+    <script src="https://cdn.lordicon.com/qjzruarw.js"></script>
     <style type="text/css">
       #topmenu {
         width: 100%;
@@ -58,6 +59,24 @@
         margin-left: 25px;
         margin-top: 20px;
       }
+      div.choice {
+        border: 2px solid gray;
+        height: 35px;
+        width: 500px;
+        background-color: rgb(230, 227, 227);
+        margin: auto;
+        margin-top: 0%;
+      }
+
+      #question {
+        margin-top: 7px;
+      }
+      #choice-login {
+        color: rgb(67, 64, 247);
+        text-decoration: underline;
+        margin-left: 150px;
+        margin-top: -25px;
+      }
     </style>
   </head>
   <body onload="flashMessage()">
@@ -85,11 +104,16 @@
 
     <div class="background">
       <div id="loginlogo">
-        <img
+        <lord-icon
+        src="https://cdn.lordicon.com/imamsnbq.json"
+        trigger="hover"
+        style="width:100px;height:100px">
+        </lord-icon>
+        <!-- <img
           src= "/static/images/login icon.png"
           alt="login logo"
           style="width: 100px; height: 100px; border-radius: 50%"
-        />
+        /> -->
       </div>
       <div id="textcontent">
         
@@ -130,6 +154,12 @@
           />
         </form>
         
+      </div>
+    </div>
+    <div class="choice">
+      <div id="question">forgot password?</div>
+      <div id="choice-login">
+        <a href="{{ url_for('forgotpassword') }}" style="color: #7ed8ff;">Reset</a>
       </div>
     </div>
   </body>

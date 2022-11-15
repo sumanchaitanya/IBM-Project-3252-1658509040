@@ -1,2 +1,7 @@
-pip install Flask
-pip install flask_login
+flask_login
+numpy
+opencv-python
+tensorflow
+cloudant
+pillow
+flask_login

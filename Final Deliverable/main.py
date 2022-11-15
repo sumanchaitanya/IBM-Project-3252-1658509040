@@ -1,23 +1,24 @@
-from flask import Flask, app, request, render_template
-import os
-import flask
-import re
-import flask_login
 import base64
-from PIL import Image
-from io import BytesIO
 import datetime
+import os
+import re
+from io import BytesIO
+
 import cv2
+import flask
+import flask_login
 import numpy as np
-from tensorflow.keras.models import load_model
+
+from cryptography.fernet import Fernet 
+key = Fernet.generate_key()
+f= Fernet(key)
+from datetime import datetime
+
 from cloudant.client import Cloudant
 from cloudant.error import CloudantException
 from cloudant.result import Result, ResultByKey
-
-
-#os.chdir('Project Development Phase\Sprint-3')
-model1 = load_model('Model/level.h5')
-model2 = load_model('Model/body.h5')
+from flask import Flask, app, render_template, request
+from PIL import Image
 
 
 def detect(frame,model1,f):
@@ -48,7 +49,7 @@ user_image_database = client.create_database('user_image_database')
 
 def image_database_updation(name,email,imagestr):
     global user_image_database
-    now = datetime.datetime.now()
+    now = datetime.now()
     json_image_document={
         'name':name,
         'email':email,
@@ -69,8 +70,8 @@ def image_database_retrieval():
     for i in image_result_retrieved:
         if(i['doc']['email'] in image_result.keys()):
             # like current date> rx date('str')
-            n = datetime.datetime.strptime(i['doc']['datetime'],'%m/%d/%Y, %H:%M:%S')  
-            o = datetime.datetime.strptime(image_result[i['doc']['email']]['date'],'%m/%d/%Y, %H:%M:%S')  
+            n = datetime.strptime(i['doc']['datetime'],'%m/%d/%Y, %H:%M:%S')  
+            o = datetime.strptime(image_result[i['doc']['email']]['date'],'%m/%d/%Y, %H:%M:%S')  
             if(n>o):
 
                 image_result[i['doc']['email']] = {'name':i['doc']['name'],'image':i['doc']['image'],'date':i['doc']['datetime']}
@@ -81,6 +82,7 @@ def image_database_retrieval():
 def database_updation(name,email,password):
     global user_database
     jsonDocument = {
+	'_id':email.replace('@','').replace('.',''),
         'name':name,
         'email':email,
         'password':password
@@ -142,12 +144,14 @@ def index():
     else:
         return flask.redirect(flask.url_for('login'))
 
+from quickstart import send_mail
 @app.route('/register',methods = ['GET','POST'])
 def register():
     data = database_retrieval()
     if(flask.request.method == 'GET'):
         return render_template('register.html')
     email = flask.request.form['email']
+    
     if(email in data):
         return render_template('register.html',flash_message='True')
     else:
@@ -157,6 +161,7 @@ def register():
         user.id = email
         user.name = flask.request.form['name']
         flask_login.login_user(user)
+        send_mail(email,"Thanks for registering","thank you")
         return render_template('dashboard.html',flash_message='True')
 
 
@@ -198,10 +203,81 @@ def logout():
     flask_login.logout_user()
     return render_template('logout.html')
 
+@app.route('/forgotpassword',methods=['GET','POST'])
+def forgotpassword():
+    data = database_retrieval()
+
+    #flask.flash('23232','info')
+    #flask_login.logout_user()
+    
+    if(flask.request.method=='POST'):
+        reset_email = flask.request.form['email']
+        #print(reset_email)
+        print(data)
+        if(reset_email in data.keys()):
+            #user = User()
+            #user.id=reset_email
+            #token = user.token_gen()
+            current_time = datetime.now()
+            d = f'{reset_email},{current_time.year},{current_time.month},{current_time.day},{current_time.hour},{current_time.month},{current_time.second},{current_time.microsecond}'
+            token = f.encrypt(bytes(d,'utf-8'))
+            #k.append(token)
+            #print(token)
+            send_mail(reset_email,"password reset",f"Reset password URL is {flask.url_for('resetpassword',token=token, _external=True)}")
+        else:
+            print('#########################')
+            pass
+
+    return render_template('forgotpassword.html')
+
+b,token1=False,'a'
+@app.route('/resetpassword/<token>', methods=["GET", "POST"])
+def resetpassword(token):
+    global b,token1
+    import copy
+    if flask.request.method=="GET":
+        token1 = copy.copy(token)
+        #print("^^^^^^^^^^^^^^^^^^^^^^^")
+        #print(token1)
+        
+        token1 = f.decrypt(bytes(token1,'utf-8')).decode('utf-8')
+        token1 = token1.split(',')
+        print(token1)
+        generated_date = datetime(int(token1[1]),int(token1[2]),int(token1[3]),int(token1[4]),int(token1[5]),int(token1[6]),int(token1[7]))
+        print(generated_date)
+        if((datetime.now()-generated_date).total_seconds()<30*60):
+            b=True
+            
+    data = database_retrieval()
+    
+    if flask.request.method=="POST" and b:
+
+        #token_email = user.verify_token(token)
+        print(token1)
+        print(data[token1[0]])
+        print('password resetted 33333333333333333333333333333333333333333333333333333333333333333333333')
+        #data[token1[0]]['password']=flask.request.form['password']
+        doc = user_database[token1[0].replace('@','').replace('.','')]
+        doc['password']=flask.request.form['password']
+        doc.save()
+
+        #user_database.save()
+
+        return flask.redirect(flask.url_for('login'))
+    return render_template('resetpassword.html')
+
+
+
 
 @app.route('/prediction',methods = ['GET','POST'])
 @flask_login.login_required
 def prediction():
+    from tensorflow.keras.models import load_model
+
+    #os.chdir('Project Development Phase\Sprint-3')
+    model1 = load_model('Model/level.h5')
+    model2 = load_model('Model/body.h5')
+
     if(flask.request.method=='POST'):
         img = flask.request.files['myFile']
         try:
@@ -213,9 +289,14 @@ def prediction():
         data = image_database_retrieval()
         print(flask_login.current_user.id)
         #print(len(base64.b64decode(data[flask_login.current_user.id]['image'].strip())))
-        img_retrived = np.asarray(bytearray(base64.b64decode(data[flask_login.current_user.id]['image'])))
-        print(img_retrived.shape)
-        print()
+        image = Image.open(BytesIO(base64.b64decode(data[flask_login.current_user.id]['image'])))
+        img_retrived = np.array(image)
+        '''img_retrived = np.asarray(base64.b64decode(data[flask_login.current_user.id]['image']))
+        print(data[flask_login.current_user.id]['image'])
+        print(img_retrived.shape)'''
+        #img_retrived = np.resize(img_retrived,(244,244))
+        img_retrive = Image.fromarray(img_retrived)
+        img_retrive.save('static\imagedata\sae.png')
         '''img_retrived = np.frombuffer(
             BytesIO(
                 base64.b64decode(data[flask_login.current_user.id]['image'])
@@ -250,7 +331,7 @@ def prediction():
         img_retrived = Image.fromarray(img_retrived)
         img_retrived.save('static\imagedata\save.png')
         print('image uploaded and retrieved')
-        return render_template('prediction.html',flash_message='True')
+        return render_template('prediction.html',flash_message='True',value = result1+' '+result2+' '+value)
         #,imag=img_retrived)
 
     return render_template('prediction.html',flash_message='Flase')
