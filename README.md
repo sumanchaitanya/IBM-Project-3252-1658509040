@@ -14,7 +14,7 @@ Intelligent Vehicle Damage Assessment &amp; Cost Estimator for Insurance Compani
 ![cjm](/Project%20Design%20%26%20Planning/Project%20Design%20Phase%20-%20II/Customer%20Journey%20Map-Intelligent%20Vehicle%20Damage%20Assessment%20and%20Cost%20Estimator%20for%20Insurance%20Companies.jpeg)
 
 # Team Members
-- Vaikunth Guruswamy
-- Karthika K
-- Tarun U
-- Geetha R
+- Bala Srinivas S.
+- Suman Chaitanya CH.
+- Yoga Vardhan C.
+- Bhuvan CH
